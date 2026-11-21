@@ -3,6 +3,9 @@ import SwiftData
 import WidgetKit
 import AppIntents
 
+/// Inside TimelineProvider, `Entry` means the timeline entry type, so refer to the model by this alias.
+private typealias TrackedEntry = Entry
+
 struct TimerWidgetEntry: TimelineEntry {
     struct Running {
         var projectName: String
@@ -43,9 +46,9 @@ struct TimerProvider: TimelineProvider {
         let end = today.end
 
         let projects = (try? context.fetch(FetchDescriptor<Project>(sortBy: [SortDescriptor(\.sortOrder)]))) ?? []
-        let running = (try? context.fetch(FetchDescriptor<Entry>(predicate: #Predicate { $0.until == nil })))?.first
+        let running = (try? context.fetch(FetchDescriptor<TrackedEntry>(predicate: #Predicate { $0.until == nil })))?.first
         // Entries starting before tomorrow; TimeMath clips them to today.
-        let todays = (try? context.fetch(FetchDescriptor<Entry>(
+        let todays = (try? context.fetch(FetchDescriptor<TrackedEntry>(
             predicate: #Predicate { $0.from < end }))) ?? []
 
         return TimerWidgetEntry(
