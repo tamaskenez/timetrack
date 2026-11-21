@@ -115,7 +115,7 @@ private struct DaysTable: View {
     let now: Date
 
     private let nameWidth: CGFloat = 110
-    private let cellWidth: CGFloat = 64
+    private let cellWidth: CGFloat = 60
     private let rowHeight: CGFloat = 36
     private let headerHeight: CGFloat = 44
 
@@ -199,7 +199,7 @@ private struct DaysTable: View {
     }
 
     private func durationCell(_ d: TimeInterval) -> some View {
-        Text(d > 0 ? TimeMath.format(d) : "–")
+        Text(d > 0 ? TimeMath.formatHM(d) : "–")
             .monospacedDigit()
             .foregroundStyle(d > 0 ? Color.primary : Color.secondary)
             .lineLimit(1)

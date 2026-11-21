@@ -34,4 +34,10 @@ enum TimeMath {
         let h = minutes / 60, m = minutes % 60
         return h > 0 ? "\(h)h \(m)m" : "\(m)m"
     }
+
+    /// "1:05", "0:45", "12:00".
+    static func formatHM(_ interval: TimeInterval) -> String {
+        let minutes = Int(interval / 60)
+        return String(format: "%d:%02d", minutes / 60, minutes % 60)
+    }
 }

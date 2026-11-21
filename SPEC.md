@@ -70,7 +70,7 @@ and setting `cloudKitDatabase` in `SharedStore`.
      breakdown. Entries are clipped to the period. Weeks start on Monday.
      Ever is unfiltered.
    - Days: table with projects as rows and days as columns (newest first,
-     scrolls sideways), plus a Total row. Only days with tracked time are
+     scrolls sideways), plus a Total row. Cells use `H:MM` (e.g. `1:05`). Only days with tracked time are
      shown; entries spanning midnight are split between days.
 4. **Projects** — all-time total per project; add, rename, delete (confirms and deletes the project's
    entries too), drag to reorder.
