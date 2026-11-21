@@ -1,0 +1,13 @@
+# XcodeGen output (regenerate with `xcodegen generate`)
+*.xcodeproj
+TimeTrack/Info.plist
+TimeTrack/TimeTrack.entitlements
+TimeTrackWidget/Info.plist
+TimeTrackWidget/TimeTrackWidget.entitlements
+
+# Xcode
+xcuserdata/
+DerivedData/
+build/
+*.xcuserstate
+.DS_Store
