@@ -65,9 +65,13 @@ and setting `cloudKitDatabase` in `SharedStore`.
    a grid of project buttons.
 2. **Entries** — entries grouped by day (by start date), newest first, daily
    totals. Tap to edit, swipe to delete, + to add manually.
-3. **Totals** — Today / This week / This month. Total per project, expandable
-   to a per-task breakdown. Entries are clipped to the period. Weeks start on
-   Monday.
+3. **Totals** — Today / This Week / Ever / Days.
+   - Today, This Week, Ever: total per project, expandable to a per-task
+     breakdown. Entries are clipped to the period. Weeks start on Monday.
+     Ever is unfiltered.
+   - Days: table with projects as rows and days as columns (newest first,
+     scrolls sideways), plus a Total row. Only days with tracked time are
+     shown; entries spanning midnight are split between days.
 4. **Projects** — all-time total per project; add, rename, delete (confirms and deletes the project's
    entries too), drag to reorder.
 
