@@ -5,7 +5,7 @@ widget and a Live Activity. See [SPEC.md](SPEC.md) for the feature spec.
 
 ## Setup
 
-1. Install XcodeGen: `brew install xcodegen`
+1. Install XcodeGen: `brew install xcodegen` or `sudo port install xcodegen`
 2. In `project.yml`, set your values at the top:
    - `DEVELOPMENT_TEAM`: your Apple team ID
    - `BUNDLE_ID_BASE`: e.g. `com.yourname.timetrack` (the widget gets `.widget` appended)
