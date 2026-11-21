@@ -35,8 +35,11 @@ final class Entry {
 
     var isRunning: Bool { until == nil }
 
-    /// End of the entry, using `now` for a running entry.
-    func end(now: Date = .now) -> Date { until ?? now }
+    /// When a running entry is stopped automatically.
+    var autoStopDate: Date { from.addingTimeInterval(TimeMath.maxEntryDuration) }
+
+    /// End of the entry; for a running entry `now`, capped at the auto-stop time.
+    func end(now: Date = .now) -> Date { until ?? min(now, autoStopDate) }
 
     func duration(now: Date = .now) -> TimeInterval {
         max(0, end(now: now).timeIntervalSince(from))

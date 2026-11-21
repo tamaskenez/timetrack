@@ -12,15 +12,27 @@ enum TimeMath {
         calendar.dateInterval(of: .day, for: now)!
     }
 
-    /// Duration of `entry` that falls inside `interval`.
-    static func duration(of entry: Entry, in interval: DateInterval, now: Date = .now) -> TimeInterval {
-        let start = max(entry.from, interval.start)
-        let end = min(entry.end(now: now), interval.end)
-        return max(0, end.timeIntervalSince(start))
+    /// A running timer is stopped automatically after this long, so an entry
+    /// never spans more than two calendar days.
+    static let maxEntryDuration: TimeInterval = 24 * 3600
+
+    /// The day an entry belongs to: the day it ends (today for a running entry).
+    /// An entry ending exactly at midnight belongs to the day before.
+    static func day(of entry: Entry, now: Date = .now) -> Date {
+        let end = entry.end(now: now)
+        let anchor = end > entry.from ? end.addingTimeInterval(-0.001) : end
+        return calendar.startOfDay(for: anchor)
     }
 
+    /// Whether `entry`'s day (see `day(of:)`) falls inside `interval`.
+    static func belongs(_ entry: Entry, to interval: DateInterval, now: Date = .now) -> Bool {
+        let d = day(of: entry, now: now)
+        return d >= interval.start && d < interval.end
+    }
+
+    /// Full duration of the entries whose day falls inside `interval`.
     static func total(_ entries: [Entry], in interval: DateInterval, now: Date = .now) -> TimeInterval {
-        entries.reduce(0) { $0 + duration(of: $1, in: interval, now: now) }
+        entries.filter { belongs($0, to: interval, now: now) }.reduce(0) { $0 + $1.duration(now: now) }
     }
 
     /// Half-open overlap test: touching ranges (one ends when the next starts) don't overlap.

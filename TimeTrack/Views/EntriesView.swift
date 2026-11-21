@@ -9,8 +9,8 @@ struct EntriesView: View {
     @State private var addingNew = false
 
     private var days: [(day: Date, entries: [Entry])] {
-        let calendar = TimeMath.calendar
-        let grouped = Dictionary(grouping: entries) { calendar.startOfDay(for: $0.from) }
+        // An entry belongs to the day it ends.
+        let grouped = Dictionary(grouping: entries) { TimeMath.day(of: $0) }
         return grouped.keys.sorted(by: >).map { ($0, grouped[$0]!) }
     }
 
@@ -75,7 +75,7 @@ private struct EntryRow: View {
             }
             Spacer()
             if entry.isRunning {
-                Text(timerInterval: entry.from...Date.distantFuture, countsDown: false)
+                Text(timerInterval: entry.from...entry.autoStopDate, countsDown: false)
                     .monospacedDigit()
                     .foregroundStyle(Color.accentColor)
                     .frame(maxWidth: 90, alignment: .trailing)
@@ -85,13 +85,14 @@ private struct EntryRow: View {
         }
     }
 
+    /// Entries are listed under the day they end, so show the start's date if it's an earlier day.
     private var timeRange: String {
-        let start = entry.from.formatted(date: .omitted, time: .shortened)
-        guard let until = entry.until else { return "\(start) – now" }
-        let sameDay = TimeMath.calendar.isDate(entry.from, inSameDayAs: until)
-        let end = sameDay
-            ? until.formatted(date: .omitted, time: .shortened)
-            : until.formatted(date: .abbreviated, time: .shortened)
+        let startsEarlier = !TimeMath.calendar.isDate(entry.from, inSameDayAs: TimeMath.day(of: entry))
+        let startTime = entry.from.formatted(date: .omitted, time: .shortened)
+        let start = startsEarlier
+            ? "\(entry.from.formatted(.dateTime.weekday(.abbreviated))) \(startTime)"
+            : startTime
+        let end = entry.until?.formatted(date: .omitted, time: .shortened) ?? "now"
         return "\(start) – \(end)"
     }
 }

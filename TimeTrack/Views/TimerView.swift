@@ -79,7 +79,7 @@ private struct RunningCard: View {
                     .font(.subheadline)
             }
 
-            Text(timerInterval: entry.from...Date.distantFuture, countsDown: false)
+            Text(timerInterval: entry.from...entry.autoStopDate, countsDown: false)
                 .font(.system(size: 48, weight: .medium, design: .rounded))
                 .monospacedDigit()
 
@@ -116,6 +116,12 @@ private struct RunningCard: View {
         }
         .padding()
         .background(.fill.tertiary, in: RoundedRectangle(cornerRadius: 16))
+        .task(id: entry.persistentModelID) {
+            // Auto-stop while the app stays open; otherwise it happens on next activation.
+            let wait = entry.autoStopDate.timeIntervalSinceNow
+            if wait > 0 { try? await Task.sleep(for: .seconds(wait)) }
+            if !Task.isCancelled { TimerService.didChange(context) }
+        }
         .onChange(of: entry.task) { _, newValue in
             taskText = newValue ?? ""  // edited elsewhere (e.g. in the entry editor)
         }
@@ -141,7 +147,8 @@ private struct StopAtSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                DatePicker("Stopped at", selection: $date, in: start...Date.now)
+                DatePicker("Stopped at", selection: $date,
+                           in: start...min(Date.now, start.addingTimeInterval(TimeMath.maxEntryDuration)))
                 Text("Duration: \(TimeMath.format(date.timeIntervalSince(start)))")
                     .foregroundStyle(.secondary)
             }

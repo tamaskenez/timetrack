@@ -49,7 +49,8 @@ struct TotalsView: View {
             let projectEntries = entries.filter { $0.project == project }
             var byTask: [String?: TimeInterval] = [:]
             for entry in projectEntries {
-                let d = TimeMath.duration(of: entry, in: interval, now: now)
+                guard TimeMath.belongs(entry, to: interval, now: now) else { continue }
+                let d = entry.duration(now: now)
                 if d > 0 { byTask[entry.task, default: 0] += d }
             }
             let total = byTask.values.reduce(0, +)
@@ -108,7 +109,7 @@ struct TotalsView: View {
 }
 
 /// Rows are projects, columns are days (newest first). Only days with tracked
-/// time are shown; entries spanning midnight are split between the days.
+/// time are shown; an entry spanning midnight counts toward the day it ends.
 private struct DaysTable: View {
     let projects: [Project]
     let entries: [Entry]
@@ -120,23 +121,16 @@ private struct DaysTable: View {
     private let headerHeight: CGFloat = 44
 
     var body: some View {
-        let calendar = TimeMath.calendar
-        // totals[projectID][day]
+        // totals[projectID][day]; an entry counts fully toward the day it ends.
         var totals: [PersistentIdentifier: [Date: TimeInterval]] = [:]
         var dayTotals: [Date: TimeInterval] = [:]
         for entry in entries {
             guard let project = entry.project else { continue }
-            var day = calendar.startOfDay(for: entry.from)
-            let end = entry.end(now: now)
-            while day < end {
-                let interval = calendar.dateInterval(of: .day, for: day)!
-                let d = TimeMath.duration(of: entry, in: interval, now: now)
-                if d > 0 {
-                    totals[project.persistentModelID, default: [:]][day, default: 0] += d
-                    dayTotals[day, default: 0] += d
-                }
-                day = interval.end
-            }
+            let d = entry.duration(now: now)
+            guard d > 0 else { continue }
+            let day = TimeMath.day(of: entry, now: now)
+            totals[project.persistentModelID, default: [:]][day, default: 0] += d
+            dayTotals[day, default: 0] += d
         }
         let days = dayTotals.keys.sorted(by: >)
         let rows = projects.filter { totals[$0.persistentModelID] != nil }

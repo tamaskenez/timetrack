@@ -26,7 +26,7 @@ enum LiveActivityController {
 
         let state = TimerActivityAttributes.ContentState(
             projectName: name, task: running.task, startedAt: running.from)
-        let content = ActivityContent(state: state, staleDate: nil)
+        let content = ActivityContent(state: state, staleDate: running.autoStopDate)
 
         if let current = activities.first {
             for extra in activities.dropFirst() {

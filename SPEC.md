@@ -30,6 +30,17 @@ the widget and the Live Activity see the same data.
 
 At most one entry is running (`until == nil`) at any time.
 
+**Day of an entry**: an entry belongs to the day it ends (a running entry to
+today). An entry ending exactly at midnight belongs to the day before. This is
+used everywhere: Entries grouping, Today/This Week totals, the Days table and
+the widget's today total. Entries are never split between days.
+
+**Auto-stop**: an entry can be at most 24 hours long, so it spans at most two
+days. A running timer is stopped at start + 24h: applied when the app becomes
+active or while it's open; until then, timers everywhere freeze at 24:00:00 and
+the widget shows "Not tracking". The editor refuses entries longer than 24h,
+and "Stop at…" can't go past start + 24h.
+
 ### iCloud sync — later
 Local only for now. The model already follows CloudKit's rules (all properties
 have defaults or are optional, relationships are optional, no unique
@@ -67,11 +78,11 @@ and setting `cloudKitDatabase` in `SharedStore`.
    totals. Tap to edit, swipe to delete, + to add manually.
 3. **Totals** — Today / This Week / Ever / Days.
    - Today, This Week, Ever: total per project, expandable to a per-task
-     breakdown. Entries are clipped to the period. Weeks start on Monday.
+     breakdown. Weeks start on Monday.
      Ever is unfiltered.
    - Days: table with projects as rows and days as columns (newest first,
-     scrolls sideways), plus a Total row. Cells use `H:MM` (e.g. `1:05`). Only days with tracked time are
-     shown; entries spanning midnight are split between days.
+     scrolls sideways), plus a Total row. Cells use `H:MM` (e.g. `1:05`).
+     Only days with tracked time are shown.
 4. **Projects** — all-time total per project; add, rename, delete (confirms and deletes the project's
    entries too), drag to reorder.
 

@@ -29,8 +29,12 @@ struct EntryEditor: View {
 
     private var effectiveUntil: Date { isRunning ? .now : until }
 
+    private var isTooLong: Bool {
+        effectiveUntil.timeIntervalSince(from) > TimeMath.maxEntryDuration
+    }
+
     private var isValid: Bool {
-        project != nil && (isRunning || until > from)
+        project != nil && (isRunning || until > from) && !isTooLong
     }
 
     private var overlapping: [Entry] {
@@ -65,6 +69,8 @@ struct EntryEditor: View {
                 } footer: {
                     if !isRunning && until <= from {
                         Text("“Until” must be after “From”.").foregroundStyle(.red)
+                    } else if isTooLong {
+                        Text("An entry can't be longer than 24 hours.").foregroundStyle(.red)
                     } else {
                         Text("Duration: \(TimeMath.format(effectiveUntil.timeIntervalSince(from)))")
                     }

@@ -11,6 +11,7 @@ struct TimerWidgetEntry: TimelineEntry {
         var projectName: String
         var task: String?
         var startedAt: Date
+        var autoStopDate: Date { startedAt.addingTimeInterval(TimeMath.maxEntryDuration) }
     }
 
     var date: Date
@@ -36,7 +37,8 @@ struct TimerProvider: TimelineProvider {
     func getTimeline(in context: Context, completion: @escaping (Timeline<TimerWidgetEntry>) -> Void) {
         let entry = load()
         // The app reloads the widget on every change; this only rolls the "today" total over.
-        let next = min(entry.date.addingTimeInterval(30 * 60), TimeMath.today(now: entry.date).end)
+        var next = min(entry.date.addingTimeInterval(30 * 60), TimeMath.today(now: entry.date).end)
+        if let autoStop = entry.running?.autoStopDate { next = min(next, autoStop) }
         completion(Timeline(entries: [entry], policy: .after(next)))
     }
 
@@ -53,7 +55,9 @@ struct TimerProvider: TimelineProvider {
 
         return TimerWidgetEntry(
             date: now,
-            running: running.map {
+            // The widget only reads; a timer past its auto-stop time shows as stopped
+            // until the app next runs and records the stop.
+            running: running.flatMap { now < $0.autoStopDate ? $0 : nil }.map {
                 .init(projectName: $0.project?.name ?? "—", task: $0.task, startedAt: $0.from)
             },
             todayTotal: TimeMath.total(todays, in: today, now: now),
@@ -98,7 +102,7 @@ struct TimerWidgetView: View {
                 if let task = running.task {
                     Text(task).font(.caption).foregroundStyle(.secondary).lineLimit(1)
                 }
-                Text(running.startedAt, style: .timer)
+                Text(timerInterval: running.startedAt...running.autoStopDate, countsDown: false)
                     .font(.title2.weight(.semibold))
                     .monospacedDigit()
                 Spacer(minLength: 0)

@@ -14,22 +14,35 @@ enum TimerService {
     /// Starts tracking `project`, stopping any running entry at the same instant.
     static func start(_ project: Project, task: String? = nil, at date: Date = .now, context: ModelContext) {
         for entry in runningEntries(context) {
-            entry.until = max(date, entry.from)
+            entry.until = clampedEnd(date, for: entry)
         }
         context.insert(Entry(from: date, until: nil, project: project, task: task?.normalizedTask))
         didChange(context)
     }
 
-    /// Stops the running entry. `date` is clamped to not precede the start.
+    /// Stops the running entry. `date` is clamped to the start and the auto-stop time.
     static func stop(at date: Date = .now, context: ModelContext) {
         for entry in runningEntries(context) {
-            entry.until = max(date, entry.from)
+            entry.until = clampedEnd(date, for: entry)
         }
         didChange(context)
     }
 
+    private static func clampedEnd(_ date: Date, for entry: Entry) -> Date {
+        min(max(date, entry.from), entry.autoStopDate)
+    }
+
+    /// Stops running entries that reached the maximum duration.
+    static func applyAutoStop(_ context: ModelContext, now: Date = .now) {
+        for entry in runningEntries(context) where now >= entry.autoStopDate {
+            entry.until = entry.autoStopDate
+        }
+    }
+
     /// Saves and refreshes everything that mirrors the data outside the app.
+    /// Also applies the auto-stop, so it runs whenever the app becomes active.
     static func didChange(_ context: ModelContext) {
+        applyAutoStop(context)
         try? context.save()
         WidgetCenter.shared.reloadAllTimelines()
         LiveActivityController.sync(running: runningEntries(context).first)

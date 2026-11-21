@@ -20,7 +20,7 @@ struct TimerLiveActivity: Widget {
                     }
                 }
                 DynamicIslandExpandedRegion(.trailing) {
-                    Text(context.state.startedAt, style: .timer)
+                    Text(timerInterval: context.state.timerRange, countsDown: false)
                         .font(.title3.weight(.semibold))
                         .monospacedDigit()
                         .multilineTextAlignment(.trailing)
@@ -34,7 +34,7 @@ struct TimerLiveActivity: Widget {
             } compactLeading: {
                 Image(systemName: "timer")
             } compactTrailing: {
-                Text(context.state.startedAt, style: .timer)
+                Text(timerInterval: context.state.timerRange, countsDown: false)
                     .monospacedDigit()
                     .frame(maxWidth: 56)
             } minimal: {
@@ -54,7 +54,7 @@ private struct LockScreenView: View {
                 if let task = state.task {
                     Text(task).font(.subheadline).foregroundStyle(.secondary).lineLimit(1)
                 }
-                Text(state.startedAt, style: .timer)
+                Text(timerInterval: state.timerRange, countsDown: false)
                     .font(.title.weight(.semibold))
                     .monospacedDigit()
             }
@@ -66,5 +66,12 @@ private struct LockScreenView: View {
             .buttonBorderShape(.circle)
             .tint(.red)
         }
+    }
+}
+
+extension TimerActivityAttributes.ContentState {
+    /// Stops counting at the auto-stop time.
+    var timerRange: ClosedRange<Date> {
+        startedAt...startedAt.addingTimeInterval(TimeMath.maxEntryDuration)
     }
 }
