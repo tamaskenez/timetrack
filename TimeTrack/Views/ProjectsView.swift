@@ -22,9 +22,13 @@ struct ProjectsView: View {
                         HStack {
                             Text(project.name).foregroundStyle(.primary)
                             Spacer()
-                            Text("\(project.entries?.count ?? 0)")
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
+                            // All-time total; refreshes each minute so a running timer is included.
+                            TimelineView(.periodic(from: .now, by: 60)) { timeline in
+                                let total = (project.entries ?? []).reduce(0) { $0 + $1.duration(now: timeline.date) }
+                                Text(TimeMath.format(total))
+                                    .foregroundStyle(.secondary)
+                                    .monospacedDigit()
+                            }
                         }
                     }
                 }

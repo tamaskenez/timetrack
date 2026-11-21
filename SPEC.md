@@ -68,7 +68,7 @@ and setting `cloudKitDatabase` in `SharedStore`.
 3. **Totals** — Today / This week / This month. Total per project, expandable
    to a per-task breakdown. Entries are clipped to the period. Weeks start on
    Monday.
-4. **Projects** — add, rename, delete (confirms and deletes the project's
+4. **Projects** — all-time total per project; add, rename, delete (confirms and deletes the project's
    entries too), drag to reorder.
 
 ### Formatting
