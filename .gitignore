@@ -11,3 +11,5 @@ DerivedData/
 build/
 *.xcuserstate
 .DS_Store
+
+.idea/
