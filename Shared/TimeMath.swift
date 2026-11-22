@@ -40,16 +40,22 @@ enum TimeMath {
         aStart < bEnd && bStart < aEnd
     }
 
-    /// "1h 23m", "45m", "0m".
+    /// Whole minutes, rounded to the nearest (30s rounds up). Durations are
+    /// stored and summed unrounded; rounding happens only here, for display.
+    static func roundedMinutes(_ interval: TimeInterval) -> Int {
+        Int((interval / 60).rounded())
+    }
+
+    /// "1h 23m", "45m", "0m". Rounded to the nearest minute.
     static func format(_ interval: TimeInterval) -> String {
-        let minutes = Int(interval / 60)
+        let minutes = roundedMinutes(interval)
         let h = minutes / 60, m = minutes % 60
         return h > 0 ? "\(h)h \(m)m" : "\(m)m"
     }
 
-    /// "1:05", "0:45", "12:00".
+    /// "1:05", "0:45", "12:00". Rounded to the nearest minute.
     static func formatHM(_ interval: TimeInterval) -> String {
-        let minutes = Int(interval / 60)
+        let minutes = roundedMinutes(interval)
         return String(format: "%d:%02d", minutes / 60, minutes % 60)
     }
 }
