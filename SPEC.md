@@ -74,20 +74,26 @@ and setting `cloudKitDatabase` in `SharedStore`.
 ### Tabs
 1. **Timer** — running timer card (project, task, elapsed, Stop, Stop at…) and
    a grid of project buttons.
-2. **Entries** — entries grouped by day (by start date), newest first, daily
+2. **Entries** — entries grouped by day (the day they end), newest first, daily
    totals. Tap to edit, swipe to delete, + to add manually.
 3. **Totals** — Today / This Week / Ever / Days.
    - Today, This Week, Ever: total per project, expandable to a per-task
      breakdown. Weeks start on Monday.
      Ever is unfiltered.
    - Days: table with projects as rows and days as columns (newest first,
-     scrolls sideways), plus a Total row. Cells use `H:MM` (e.g. `1:05`).
-     Only days with tracked time are shown.
+     scrolls sideways), plus a Total row and an Untracked row. Cells use
+     `H:MM` (e.g. `1:05`). Only days with tracked time are shown.
+   - Untracked: the day's span minus its tracked total (never negative). The
+     span starts when the day's first entry starts (possibly the previous
+     calendar day) and ends when its last entry ends — unless the next day's
+     first entry starts on this day, in which case it ends when that entry
+     starts. A running entry ends now.
 4. **Projects** — all-time total per project; add, rename, delete (confirms and deletes the project's
    entries too), drag to reorder.
 
 ### Formatting
-- Durations: `1h 23m`, `45m`, `0m`. No rounding of stored times.
+- Durations: `1h 23m`, `45m`, `0m`, rounded to the nearest minute for display
+  only; stored times and sums keep full precision.
 - Running timers show seconds (`1:23:45`).
 
 ## Out of scope for now

@@ -110,6 +110,8 @@ struct TotalsView: View {
 
 /// Rows are projects, columns are days (newest first). Only days with tracked
 /// time are shown; an entry spanning midnight counts toward the day it ends.
+/// Below the Total row, Untracked shows the gaps within each day's span
+/// (see `TimeMath.untracked`).
 private struct DaysTable: View {
     let projects: [Project]
     let entries: [Entry]
@@ -124,6 +126,7 @@ private struct DaysTable: View {
         // totals[projectID][day]; an entry counts fully toward the day it ends.
         var totals: [PersistentIdentifier: [Date: TimeInterval]] = [:]
         var dayTotals: [Date: TimeInterval] = [:]
+        var spans: [TimeMath.Span] = []
         for entry in entries {
             guard let project = entry.project else { continue }
             let d = entry.duration(now: now)
@@ -131,7 +134,9 @@ private struct DaysTable: View {
             let day = TimeMath.day(of: entry, now: now)
             totals[project.persistentModelID, default: [:]][day, default: 0] += d
             dayTotals[day, default: 0] += d
+            spans.append(.init(from: entry.from, end: entry.end(now: now), day: day))
         }
+        let untracked = TimeMath.untracked(spans)
         let days = dayTotals.keys.sorted(by: >)
         let rows = projects.filter { totals[$0.persistentModelID] != nil }
 
@@ -150,6 +155,8 @@ private struct DaysTable: View {
                             }
                             cell("Total", width: nameWidth, height: rowHeight, alignment: .leading)
                                 .fontWeight(.semibold)
+                            cell("Untracked", width: nameWidth, height: rowHeight, alignment: .leading)
+                                .foregroundStyle(.secondary)
                         }
                         .padding(.leading)
 
@@ -172,6 +179,7 @@ private struct DaysTable: View {
                                             durationCell(d)
                                         }
                                         durationCell(dayTotals[day] ?? 0).fontWeight(.semibold)
+                                        durationCell(untracked[day] ?? 0).foregroundStyle(.secondary)
                                     }
                                 }
                             }
