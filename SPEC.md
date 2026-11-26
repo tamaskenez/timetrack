@@ -59,8 +59,14 @@ and setting `cloudKitDatabase` in `SharedStore`.
 - **Manual entry**: add an entry with project, task, from, until.
 - **Edit**: change project, task, from, until of any entry; delete an entry.
   A running entry can be stopped from the editor by turning off "Running".
-- **Validation**: `until` must be after `from`. Overlapping another entry shows
-  a warning but saving is allowed.
+- **Validation**: `until` must be after `from`.
+- **Overlaps**: the editor lists the entries that overlap the one being edited
+  (or added), and what saving will do to each. On save the edited entry wins:
+  entries it fully covers are deleted, entries it partly overlaps are truncated
+  (to end at its start, or to start at its end), and an entry covering it on
+  both sides is split into the part before and the part after. A running entry
+  being edited counts as ending now; a running entry that gets truncated at the
+  end is stopped.
 - **Task suggestions**: the task field suggests tasks previously used on the
   selected project, most recent first, filtered by what's typed.
 

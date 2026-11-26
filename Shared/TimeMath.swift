@@ -59,3 +59,30 @@ enum TimeMath {
         return String(format: "%d:%02d", minutes / 60, minutes % 60)
     }
 }
+
+extension TimeMath {
+    /// What saving an entry `[from, until)` does to another entry `[otherFrom, otherEnd)`
+    /// that overlaps it: the saved entry wins and the other gives way.
+    enum OverlapResolution: Equatable {
+        /// Fully covered: the other entry is deleted.
+        case delete
+        /// Starts before: the other entry now ends at `from`.
+        case trimEnd(Date)
+        /// Ends after: the other entry now starts at `until`.
+        case trimStart(Date)
+        /// Covers the saved entry on both sides: the part before stays,
+        /// the part after becomes a new entry.
+        case split(Date, Date)
+    }
+
+    static func overlapResolution(from: Date, until: Date, otherFrom: Date, otherEnd: Date) -> OverlapResolution {
+        let before = otherFrom < from
+        let after = otherEnd > until
+        switch (before, after) {
+        case (false, false): return .delete
+        case (true, false): return .trimEnd(from)
+        case (false, true): return .trimStart(until)
+        case (true, true): return .split(from, until)
+        }
+    }
+}

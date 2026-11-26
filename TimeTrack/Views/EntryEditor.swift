@@ -37,12 +37,16 @@ struct EntryEditor: View {
         project != nil && (isRunning || until > from) && !isTooLong
     }
 
-    private var overlapping: [Entry] {
+    private func overlapping(until end: Date) -> [Entry] {
         allEntries.filter { other in
             other != entry &&
-            TimeMath.overlaps(from, effectiveUntil, other.from, other.end())
+            TimeMath.overlaps(from, end, other.from, other.end())
         }
         .sorted { $0.from < $1.from }
+    }
+
+    private func resolution(of other: Entry, until end: Date) -> TimeMath.OverlapResolution {
+        TimeMath.overlapResolution(from: from, until: end, otherFrom: other.from, otherEnd: other.end())
     }
 
     var body: some View {
@@ -76,16 +80,22 @@ struct EntryEditor: View {
                     }
                 }
 
+                let overlapping = overlapping(until: effectiveUntil)
                 if !overlapping.isEmpty {
                     Section {
                         ForEach(overlapping) { other in
-                            Text("\(other.project?.name ?? "—"): \(Self.range(other))")
+                            VStack(alignment: .leading, spacing: 2) {
+                                Text("\(other.project?.name ?? "—"): \(Self.range(other))")
+                                Text(Self.describe(resolution(of: other, until: effectiveUntil)))
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                            }
                         }
                     } header: {
-                        Label("Overlaps with", systemImage: "exclamationmark.triangle.fill")
+                        Label("Overlapping entries", systemImage: "exclamationmark.triangle.fill")
                             .foregroundStyle(.orange)
                     } footer: {
-                        Text("You can still save.")
+                        Text("Saving deletes the entries this one fully covers and truncates the ones it partly overlaps.")
                     }
                 }
 
@@ -119,6 +129,8 @@ struct EntryEditor: View {
     }
 
     private func save() {
+        let end = isRunning ? Date.now : until
+        resolveOverlaps(until: end)
         let target: Entry
         if let entry {
             target = entry
@@ -132,6 +144,34 @@ struct EntryEditor: View {
         target.until = isRunning ? nil : until
         TimerService.didChange(context)
         dismiss()
+    }
+
+    /// The saved entry wins: covered entries are deleted, partly overlapping ones truncated.
+    private func resolveOverlaps(until end: Date) {
+        for other in overlapping(until: end) {
+            switch resolution(of: other, until: end) {
+            case .delete:
+                context.delete(other)
+            case .trimEnd(let date):
+                other.until = date
+            case .trimStart(let date):
+                other.from = date
+            case .split(let before, let after):
+                // The part after keeps the original end (and keeps running if it was).
+                context.insert(Entry(from: after, until: other.until, project: other.project, task: other.task))
+                other.until = before
+            }
+        }
+    }
+
+    private static func describe(_ resolution: TimeMath.OverlapResolution) -> String {
+        func time(_ d: Date) -> String { d.formatted(date: .omitted, time: .shortened) }
+        switch resolution {
+        case .delete: return "Will be deleted"
+        case .trimEnd(let d): return "Will end at \(time(d))"
+        case .trimStart(let d): return "Will start at \(time(d))"
+        case .split(let a, let b): return "Will be split: until \(time(a)) and from \(time(b))"
+        }
     }
 
     private static func range(_ e: Entry) -> String {
